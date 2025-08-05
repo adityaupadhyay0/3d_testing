@@ -362,17 +362,12 @@ void performFaceRotation(int face) {
     rotateFaceClockwise(face);
     rotateAdjacentEdges(face);
 }
+
+void scrambleCube() {
     srand(time(nullptr));
-    for (int i = 0; i < 50; i++) {
-        // Randomly swap colors between faces
-        int face1 = rand() % 6;
-        int face2 = rand() % 6;
-        int pos1 = rand() % 9;
-        int pos2 = rand() % 9;
-        
-        int temp = cubeState[face1][pos1];
-        cubeState[face1][pos1] = cubeState[face2][pos2];
-        cubeState[face2][pos2] = temp;
+    for (int i = 0; i < 20; ++i) {
+        int face = rand() % 6;
+        performFaceRotation(face);
     }
 }
 
@@ -488,6 +483,7 @@ void display() {
         } else {
             faceRotation.angle = faceRotation.targetAngle;
             faceRotation.isRotating = false;
+            performFaceRotation(faceRotation.face); // <-- apply logic AFTER animation
         }
         glutPostRedisplay();
     }
@@ -545,94 +541,41 @@ void mouseMotion(int x, int y) {
     }
 }
 
-// Enhanced keyboard controls
 void keyboard(unsigned char key, int x, int y) {
     switch (key) {
-        // Camera controls
-        case 'w': case 'W':
-            camera.targetAngleX -= 5.0f;
-            break;
-        case 's': case 'S':
-            camera.targetAngleX += 5.0f;
-            break;
-        case 'a': case 'A':
-            if (key == 'a') camera.targetAngleY -= 5.0f;
-            else autoRotate = !autoRotate;
-            break;
-        case 'd': case 'D':
-            camera.targetAngleY += 5.0f;
-            break;
-            
-        // Face rotations
-        case '1': // Front face
-            if (!faceRotation.isRotating) {
-                faceRotation.face = 0;
-                faceRotation.targetAngle += 90.0f;
-                faceRotation.isRotating = true;
-                performFaceRotation(0); // Update cube state immediately
-            }
-            break;
-        case '2': // Back face
-            if (!faceRotation.isRotating) {
-                faceRotation.face = 1;
-                faceRotation.targetAngle += 90.0f;
-                faceRotation.isRotating = true;
-                performFaceRotation(1);
-            }
-            break;
-        case '3': // Right face
-            if (!faceRotation.isRotating) {
-                faceRotation.face = 2;
-                faceRotation.targetAngle += 90.0f;
-                faceRotation.isRotating = true;
-                performFaceRotation(2);
-            }
-            break;
-        case '4': // Left face
-            if (!faceRotation.isRotating) {
-                faceRotation.face = 3;
-                faceRotation.targetAngle += 90.0f;
-                faceRotation.isRotating = true;
-                performFaceRotation(3);
-            }
-            break;
-        case '5': // Top face
-            if (!faceRotation.isRotating) {
-                faceRotation.face = 4;
-                faceRotation.targetAngle += 90.0f;
-                faceRotation.isRotating = true;
-                performFaceRotation(4);
-            }
-            break;
-        case '6': // Bottom face
-            if (!faceRotation.isRotating) {
-                faceRotation.face = 5;
-                faceRotation.targetAngle += 90.0f;
-                faceRotation.isRotating = true;
-                performFaceRotation(5);
-            }
-            break;
-            
-        // Utility controls
-        case ' ': // Spacebar - scramble
+        case 'w': case 'W': camera.targetAngleX -= 5.0f; break;
+        case 's': case 'S': camera.targetAngleX += 5.0f; break;
+        case 'a': camera.targetAngleY -= 5.0f; break;
+        case 'A': autoRotate = !autoRotate; break;
+        case 'd': case 'D': camera.targetAngleY += 5.0f; break;
+
+        case '+': camera.distance -= 0.5f; break;
+        case '-': camera.distance += 0.5f; break;
+
+        case 'h': case 'H': showHelp = !showHelp; break;
+
+        case 'r': case 'R': resetCube(); break;
+
+        case ' ':
             scrambleCube();
             break;
-        case 'r': case 'R': // Reset
-            resetCube();
+
+        // Face rotations: trigger animation
+        case '1': case '2': case '3': case '4': case '5': case '6': {
+            int face = key - '1'; // map '1'-'6' to 0–5
+            if (!faceRotation.isRotating) {
+                faceRotation.face = face;
+                faceRotation.angle = 0.0f;
+                faceRotation.targetAngle = 90.0f;
+                faceRotation.isRotating = true;
+                // Apply logical state update after animation finishes in display()
+            }
             break;
-        case 'h': case 'H': // Help
-            showHelp = !showHelp;
-            break;
-        case '+': case '=': // Zoom in
-            camera.distance = fmax(5.0f, camera.distance - 1.0f);
-            break;
-        case '-': case '_': // Zoom out
-            camera.distance = fmin(20.0f, camera.distance + 1.0f);
-            break;
-        case 27: // ESC
-            exit(0);
-            break;
+        }
+
+        case 27: exit(0); // ESC
     }
+
     glutPostRedisplay();
 }
 
