@@ -82,22 +82,20 @@ void setupLighting() {
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 }
 
-// Draws a single colored face (sticker)
-void drawColoredFace(int colorIndex) {
+// Draws a single colored face (sticker) given its vertices and normal
+void drawColoredFace(int colorIndex, const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float normal[3]) {
     float* color = colors[colorIndex];
     
     // Set material color
-    // glColorMaterial is enabled, so glColor3fv below will set the material.
     glColor3fv(color);
     
-    // Draw a simple quad with an inset on the XY plane.
-    float inset = 0.05f;
+    // Draw the quad
     glBegin(GL_QUADS);
-    glNormal3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(-0.5f + inset, -0.5f + inset, 0.0f);
-    glVertex3f( 0.5f - inset, -0.5f + inset, 0.0f);
-    glVertex3f( 0.5f - inset,  0.5f - inset, 0.0f);
-    glVertex3f(-0.5f + inset,  0.5f - inset, 0.0f);
+    glNormal3fv(normal);
+    glVertex3fv(v1);
+    glVertex3fv(v2);
+    glVertex3fv(v3);
+    glVertex3fv(v4);
     glEnd();
 }
 
@@ -112,77 +110,72 @@ void drawCubie(int x, int y, int z) {
     glutSolidCube(1.0f);
     glEnable(GL_LIGHTING);
 
-    float sticker_offset = 0.501f; // Place stickers slightly proud of the face
+    float s = 0.5f - 0.05f; // half-size of sticker, with inset
 
-    // Front face (Z = 1) - Red
+    // Front face (Z = 1)
     if (z == 1) {
-        glPushMatrix();
-        glTranslatef(0.0f, 0.0f, sticker_offset);
-        int row = (1 - y);
-        int col = (x + 1);
-        int faceIndex = row * 3 + col;
-        drawColoredFace(cubeState[0][faceIndex]);
-        glPopMatrix();
+        int row = (1 - y); int col = (x + 1); int faceIndex = row * 3 + col;
+        const float normal[] = {0, 0, 1};
+        const float v1[] = {-s, -s, 0.501f};
+        const float v2[] = { s, -s, 0.501f};
+        const float v3[] = { s,  s, 0.501f};
+        const float v4[] = {-s,  s, 0.501f};
+        drawColoredFace(cubeState[0][faceIndex], v1, v2, v3, v4, normal);
     }
     
-    // Back face (Z = -1) - Orange
+    // Back face (Z = -1)
     if (z == -1) {
-        glPushMatrix();
-        glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
-        glTranslatef(0.0f, 0.0f, sticker_offset);
-        int row = (1 - y);
-        int col = (1 - x);
-        int faceIndex = row * 3 + col;
-        drawColoredFace(cubeState[1][faceIndex]);
-        glPopMatrix();
+        int row = (1 - y); int col = (1 - x); int faceIndex = row * 3 + col;
+        const float normal[] = {0, 0, -1};
+        const float v1[] = { s, -s, -0.501f};
+        const float v2[] = {-s, -s, -0.501f};
+        const float v3[] = {-s,  s, -0.501f};
+        const float v4[] = { s,  s, -0.501f};
+        drawColoredFace(cubeState[1][faceIndex], v1, v2, v3, v4, normal);
     }
     
-    // Top face (Y = 1) - White
+    // Top face (Y = 1)
     if (y == 1) {
-        glPushMatrix();
-        glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-        glTranslatef(0.0f, 0.0f, sticker_offset);
-        int row = (1 - z);
-        int col = (x + 1);
-        int faceIndex = row * 3 + col;
-        drawColoredFace(cubeState[4][faceIndex]);
-        glPopMatrix();
+        int row = (1 - z); int col = (x + 1); int faceIndex = row * 3 + col;
+        const float normal[] = {0, 1, 0};
+        const float v1[] = {-s, 0.501f,  s};
+        const float v2[] = { s, 0.501f,  s};
+        const float v3[] = { s, 0.501f, -s};
+        const float v4[] = {-s, 0.501f, -s};
+        drawColoredFace(cubeState[4][faceIndex], v1, v2, v3, v4, normal);
     }
     
-    // Bottom face (Y = -1) - Yellow
+    // Bottom face (Y = -1)
     if (y == -1) {
-        glPushMatrix();
-        glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-        glTranslatef(0.0f, 0.0f, sticker_offset);
-        int row = (z + 1);
-        int col = (x + 1);
-        int faceIndex = row * 3 + col;
-        drawColoredFace(cubeState[5][faceIndex]);
-        glPopMatrix();
+        int row = (z + 1); int col = (x + 1); int faceIndex = row * 3 + col;
+        const float normal[] = {0, -1, 0};
+        const float v1[] = {-s, -0.501f, -s};
+        const float v2[] = { s, -0.501f, -s};
+        const float v3[] = { s, -0.501f,  s};
+        const float v4[] = {-s, -0.501f,  s};
+        drawColoredFace(cubeState[5][faceIndex], v1, v2, v3, v4, normal);
     }
     
-    // Left face (X = -1) - Blue
-    if (x == -1) {
-        glPushMatrix();
-        glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-        glTranslatef(0.0f, 0.0f, sticker_offset);
-        int row = (1 - y);
-        int col = (z + 1);
-        int faceIndex = row * 3 + col;
-        drawColoredFace(cubeState[3][faceIndex]);
-        glPopMatrix();
-    }
-    
-    // Right face (X = 1) - Green
+    // Right face (X = 1)
     if (x == 1) {
-        glPushMatrix();
-        glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-        glTranslatef(0.0f, 0.0f, sticker_offset);
-        int row = (1 - y);
-        int col = (1 - z);
-        int faceIndex = row * 3 + col;
-        drawColoredFace(cubeState[2][faceIndex]);
-        glPopMatrix();
+        int row = (1 - y); int col = (1 - z); int faceIndex = row * 3 + col;
+        const float normal[] = {1, 0, 0};
+        const float v1[] = {0.501f, -s,  s};
+        const float v2[] = {0.501f,  s,  s};
+        const float v3[] = {0.501f,  s, -s};
+        const float v4[] = {0.501f, -s, -s};
+        drawColoredFace(cubeState[2][faceIndex], v1, v2, v3, v4, normal);
+    }
+    
+    // Left face (X = -1)
+    if (x == -1) {
+        int row = (1 - y); int col = (z + 1); int faceIndex = row * 3 + col;
+        const float normal[] = {-1, 0, 0};
+        const float v1[] = {-0.501f, -s, -s};
+        const float v2[] = {-0.501f,  s, -s};
+        const float v3[] = {-0.501f,  s,  s};
+        const float v4[] = {-0.501f, -s,  s};
+        drawColoredFace(cubeState[3][faceIndex], v1, v2, v3, v4, normal);
     }
     
     glPopMatrix();
