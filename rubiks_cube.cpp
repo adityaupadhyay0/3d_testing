@@ -82,8 +82,8 @@ void setupLighting() {
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 }
 
-// Enhanced face drawing with better geometry
-void drawColoredFace(int colorIndex, bool drawBorder = true) {
+// Draws a single colored face (sticker)
+void drawColoredFace(int colorIndex) {
     float* color = colors[colorIndex];
     
     // Set material color
@@ -92,52 +92,36 @@ void drawColoredFace(int colorIndex, bool drawBorder = true) {
     
     glColor3fv(color);
     
-    // Draw main face with slight inset for better visual separation
-    float inset = 0.05f;
+    // Draw a simple 1x1 quad on the XY plane.
+    // The calling function is responsible for rotating and translating this into place.
     glBegin(GL_QUADS);
     glNormal3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(-0.5f + inset, -0.5f + inset, 0.501f);
-    glVertex3f( 0.5f - inset, -0.5f + inset, 0.501f);
-    glVertex3f( 0.5f - inset,  0.5f - inset, 0.501f);
-    glVertex3f(-0.5f + inset,  0.5f - inset, 0.501f);
+    glVertex3f(-0.5f, -0.5f, 0.0f);
+    glVertex3f( 0.5f, -0.5f, 0.0f);
+    glVertex3f( 0.5f,  0.5f, 0.0f);
+    glVertex3f(-0.5f,  0.5f, 0.0f);
     glEnd();
-    
-    // Draw border
-    if (drawBorder) {
-        glDisable(GL_LIGHTING);
-        glColor3f(0.0f, 0.0f, 0.0f);
-        glLineWidth(2.0f);
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(-0.5f + inset, -0.5f + inset, 0.502f);
-        glVertex3f( 0.5f - inset, -0.5f + inset, 0.502f);
-        glVertex3f( 0.5f - inset,  0.5f - inset, 0.502f);
-        glVertex3f(-0.5f + inset,  0.5f - inset, 0.502f);
-        glEnd();
-        glEnable(GL_LIGHTING);
-    }
 }
 
-// Enhanced cubie with proper face mapping
+// Draws a single cubie, consisting of a black cube body and colored stickers.
 void drawCubie(int x, int y, int z) {
     glPushMatrix();
     glTranslatef(x, y, z);
-    
-    // Draw black outline
+
+    // Draw the solid black cube body
     glDisable(GL_LIGHTING);
-    glColor3f(0.05f, 0.05f, 0.05f);
-    glLineWidth(1.5f);
-    glutWireCube(1.02f);
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glutSolidCube(1.0f);
     glEnable(GL_LIGHTING);
-    
-    float offset = 0.501f;
-    
+
+    float sticker_offset = 0.501f; // Place stickers slightly proud of the face
+
     // Front face (Z = 1) - Red
     if (z == 1) {
         glPushMatrix();
-        glTranslatef(0, 0, offset);
-        // Map 3D position to 2D face grid: top-left is (0,0), bottom-right is (2,2)
-        int row = (1 - y);  // y=1 -> row=0 (top), y=-1 -> row=2 (bottom)
-        int col = (x + 1);  // x=-1 -> col=0 (left), x=1 -> col=2 (right)
+        glTranslatef(0.0f, 0.0f, sticker_offset);
+        int row = (1 - y);
+        int col = (x + 1);
         int faceIndex = row * 3 + col;
         drawColoredFace(cubeState[0][faceIndex]);
         glPopMatrix();
@@ -146,10 +130,10 @@ void drawCubie(int x, int y, int z) {
     // Back face (Z = -1) - Orange
     if (z == -1) {
         glPushMatrix();
-        glTranslatef(0, 0, -offset);
-        glRotatef(180, 0, 1, 0);
+        glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+        glTranslatef(0.0f, 0.0f, sticker_offset);
         int row = (1 - y);
-        int col = (1 - x);  // Flipped because we're looking from behind
+        int col = (1 - x);
         int faceIndex = row * 3 + col;
         drawColoredFace(cubeState[1][faceIndex]);
         glPopMatrix();
@@ -158,9 +142,9 @@ void drawCubie(int x, int y, int z) {
     // Top face (Y = 1) - White
     if (y == 1) {
         glPushMatrix();
-        glTranslatef(0, offset, 0);
-        glRotatef(-90, 1, 0, 0);
-        int row = (1 - z);  // z=1 -> row=0 (front), z=-1 -> row=2 (back)
+        glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+        glTranslatef(0.0f, 0.0f, sticker_offset);
+        int row = (1 - z);
         int col = (x + 1);
         int faceIndex = row * 3 + col;
         drawColoredFace(cubeState[4][faceIndex]);
@@ -170,9 +154,9 @@ void drawCubie(int x, int y, int z) {
     // Bottom face (Y = -1) - Yellow
     if (y == -1) {
         glPushMatrix();
-        glTranslatef(0, -offset, 0);
-        glRotatef(90, 1, 0, 0);
-        int row = (z + 1);  // z=-1 -> row=0 (back), z=1 -> row=2 (front)
+        glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+        glTranslatef(0.0f, 0.0f, sticker_offset);
+        int row = (z + 1);
         int col = (x + 1);
         int faceIndex = row * 3 + col;
         drawColoredFace(cubeState[5][faceIndex]);
@@ -182,10 +166,10 @@ void drawCubie(int x, int y, int z) {
     // Left face (X = -1) - Blue
     if (x == -1) {
         glPushMatrix();
-        glTranslatef(-offset, 0, 0);
-        glRotatef(90, 0, 1, 0);
+        glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+        glTranslatef(0.0f, 0.0f, sticker_offset);
         int row = (1 - y);
-        int col = (z + 1);  // z=-1 -> col=0 (back), z=1 -> col=2 (front)
+        int col = (z + 1);
         int faceIndex = row * 3 + col;
         drawColoredFace(cubeState[3][faceIndex]);
         glPopMatrix();
@@ -194,10 +178,10 @@ void drawCubie(int x, int y, int z) {
     // Right face (X = 1) - Green
     if (x == 1) {
         glPushMatrix();
-        glTranslatef(offset, 0, 0);
-        glRotatef(-90, 0, 1, 0);
+        glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+        glTranslatef(0.0f, 0.0f, sticker_offset);
         int row = (1 - y);
-        int col = (1 - z);  // z=1 -> col=0 (front), z=-1 -> col=2 (back)
+        int col = (1 - z);
         int faceIndex = row * 3 + col;
         drawColoredFace(cubeState[2][faceIndex]);
         glPopMatrix();
