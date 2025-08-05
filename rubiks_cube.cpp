@@ -87,19 +87,17 @@ void drawColoredFace(int colorIndex) {
     float* color = colors[colorIndex];
     
     // Set material color
-    float mat_diffuse[] = {color[0], color[1], color[2], 1.0f};
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
-    
+    // glColorMaterial is enabled, so glColor3fv below will set the material.
     glColor3fv(color);
     
-    // Draw a simple 1x1 quad on the XY plane.
-    // The calling function is responsible for rotating and translating this into place.
+    // Draw a simple quad with an inset on the XY plane.
+    float inset = 0.05f;
     glBegin(GL_QUADS);
     glNormal3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(-0.5f, -0.5f, 0.0f);
-    glVertex3f( 0.5f, -0.5f, 0.0f);
-    glVertex3f( 0.5f,  0.5f, 0.0f);
-    glVertex3f(-0.5f,  0.5f, 0.0f);
+    glVertex3f(-0.5f + inset, -0.5f + inset, 0.0f);
+    glVertex3f( 0.5f - inset, -0.5f + inset, 0.0f);
+    glVertex3f( 0.5f - inset,  0.5f - inset, 0.0f);
+    glVertex3f(-0.5f + inset,  0.5f - inset, 0.0f);
     glEnd();
 }
 
